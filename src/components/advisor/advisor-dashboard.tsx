@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignedStudentsView } from "./assigned-students-view";
 import { MeetingRequestManagement } from "./meeting-request-management";
 import { AdvisorChatInterface } from "./advisor-chat-interface";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@clerk/nextjs";
 import { Shield, Users, Calendar } from "lucide-react";
 import { AdvisorScheduleView } from "./advisor-schedule-view";
 import { AdvisorAvailabilityManagement } from "./advisor-availability-management";
@@ -32,7 +32,7 @@ export function AdvisorDashboard() {
             <Shield className="mx-auto mb-4 h-12 w-12 text-red-500" />
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>
-              You don't have advisor privileges to access this section.
+              You do not have advisor privileges to access this section.
             </CardDescription>
           </CardHeader>
         </Card>

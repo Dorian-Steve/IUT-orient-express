@@ -1,3 +1,21 @@
+// // src/components/shared/loader.tsx
+// import React from "react";
+// import { Loader2 } from "lucide-react";
+
+// interface LoaderProps {
+//   size?: number;
+//   className?: string;
+// }
+
+// export const Loader: React.FC<LoaderProps> = ({ size = 24, className }) => {
+//   return (
+//     <Loader2
+//       className={`animate-spin ${className}`}
+//       style={{ width: size, height: size }}
+//     />
+//   );
+// };
+
 // src/components/shared/loader.tsx
 import { cn } from "@/lib/utils"; // Assuming you have a utility for class concatenation
 

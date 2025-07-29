@@ -1,5 +1,5 @@
 // staff.ts
-import { Stat } from "@/types/types";
+import { type Stat } from "@/types/types";
 
 export const STATS_DATA: Stat[] = [
   { value: "2000+", label: "Étudiants", color: "text-emerald-600" },

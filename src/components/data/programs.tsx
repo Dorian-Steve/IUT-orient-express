@@ -1,7 +1,7 @@
 // programs.ts
 import { BookOpen, Target, Award, Briefcase } from "lucide-react";
 // import { Program } from '../../types';
-import { Program } from "@/types/types";
+import { type Program } from "@/types/types";
 
 export const programs: Program[] = [
   {

@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { User } from  '@prisma/client';
+import {prisma} from "@/lib/prisma";
+import { type User } from  '@prisma/client';
 
 export async function createUser(data: User) {
     try{
@@ -12,28 +12,35 @@ export async function createUser(data: User) {
 
 export async function getUserById({
     id, 
-    clerkUserId
+    email
 }:{
-    id?: string
-    clerkUserId?: string
+    id?: number  // Changed from string to number
+    email?: string
 }) {
     try {
-        if(!id && !clerkUserId) {
-            throw new Error('id or ClerkUserId is required')
+        if(!id && !email) {
+            throw new Error('id or email is required')
         }
 
-        const query = id ? { id } : { clerkUserId }
+        let user;
+        
+        if (id) {
+            user = await prisma.user.findUnique({ 
+                where: { id }
+            });
+        } else if (email) {
+            user = await prisma.user.findUnique({ 
+                where: { email }
+            });
+        }
 
-        const user  = await prisma.user.findUnique({ 
-            where: query
-         })
         return { user }
     } catch (error){
         return { error }
     }
 }
 
-export async function UpdateUser(id: string, data: Partial<User>) {
+export async function UpdateUser(id: number, data: Partial<User>) {  // Changed from string to number
     try{
         const user = await prisma.user.update({ 
             where: { id },
@@ -44,4 +51,3 @@ export async function UpdateUser(id: string, data: Partial<User>) {
         return { error }
     }
 }
-

@@ -7,20 +7,11 @@ import {
   useScroll,
 } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes"; // CRITICAL: Import useTheme for dark mode
+import Link from "next/link"; // Use Next.js Link
+import { usePathname } from "next/navigation"; // Use Next.js usePathname
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import {
-  Menu,
-  X,
-  LogOut,
-  User,
-  Settings,
-  Search,
-  Sun, // CRITICAL: Import Sun icon for light mode
-  Moon, // CRITICAL: Import Moon icon for dark mode
-} from "lucide-react";
+import { Menu, X, LogOut, User, Settings, Search } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,8 +30,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth, useUser as useClerkUser } from "@clerk/nextjs"; // Import Clerk's useAuth and useUser
+import { useUser } from "@/hooks/useUser"; // Your custom useUser hook for logout
 
 // --- Type Definitions ---
 interface NavigationItem {
@@ -124,35 +117,21 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = React.memo(
 
     return (
       <Link
-        href="/"
+        href="/home"
         className={cn("flex flex-shrink-0 items-center space-x-2", className)}
         aria-label="Go to homepage"
       >
         <Image
-          src={"/assets/images/iut-logo.png"} // Ensure this path is correct and image exists
+          src={"/public/favicon.png"}
           alt="IUT Douala Logo"
           width={size}
           height={size}
           className="rounded-full object-contain"
-          onError={(e) => {
-            // Fallback for missing image: display a simple text logo
-            e.currentTarget.onerror = null; // Prevent infinite loop
-            e.currentTarget.style.display = "none"; // Hide the broken image icon
-            const parent = e.currentTarget.parentElement;
-            if (parent) {
-              const textLogo = document.createElement("div");
-              textLogo.className =
-                "flex h-8 w-8 items-center justify-center rounded-sm bg-blue-600";
-              textLogo.innerHTML =
-                '<span class="text-sm font-bold text-white">IUT</span>';
-              parent.insertBefore(textLogo, e.currentTarget);
-            }
-          }}
         />
         <div>
           <h4 className="text-brand-main text-lg font-bold">Orient Express</h4>
           <p className={cn("-mt-1 text-xs", subTitleColor)}>
-            Plateforme d'Orientation
+            Academic Orientation Platform
           </p>
         </div>
       </Link>
@@ -203,13 +182,8 @@ const NavItemComponent: React.FC<NavItemComponentProps> = React.memo(
           aria-label={item.name}
         >
           <span>{item.name}</span>
-          {/* Active/Hover indicator dot/underline */}
-          {(isActive || isHovered) && ( // CRITICAL FIX: Show on hover as well
-            <motion.span
-              layoutId="nav-dot" // For Framer Motion animation
-              transition={{ type: "spring", ...NAVBAR_ANIMATIONS.navDot }}
-              className="bg-primary absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full"
-            />
+          {isActive && (
+            <span className="bg-primary absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full" />
           )}
         </Link>
       </li>
@@ -283,6 +257,7 @@ const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
                 onItemClick={onClose}
               />
             ))}
+
             {isAdminOrAdvisor && (
               <Link href={dashboardHref} passHref>
                 <Button
@@ -292,11 +267,7 @@ const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
                   className="mt-2 w-full justify-start text-base"
                 >
                   <Settings className="mr-2 h-5 w-5" />
-                  {isAdminOrAdvisor
-                    ? userRole === "ADMIN"
-                      ? "Admin Dashboard"
-                      : "Advisor Dashboard"
-                    : "Dashboard"}
+                  {dashboardButtonText}
                 </Button>
               </Link>
             )}
@@ -361,12 +332,12 @@ const MobileNavFooter: React.FC<MobileNavFooterProps> = ({
         </Button>
       ) : (
         <>
-          <Button variant="outline" asChild className="w-full rounded-sm">
+          <Button variant="outline" asChild className="w-full rounded-full">
             <Link href="/sign-in" onClick={onClose}>
               {"Login"}
             </Link>
           </Button>
-          <Button asChild className="w-full rounded-sm">
+          <Button asChild className="w-full rounded-full">
             <Link href="/sign-up" onClick={onClose}>
               {"Sign Up"}
             </Link>
@@ -395,10 +366,8 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
   const animationProps = useMemo(
     () => ({
       animate: {
-        backdropFilter: visible
-          ? `${NAVBAR_ANIMATIONS.backdrop.blur} blur(10px)`
-          : "none",
-        backgroundColor: visible ? "rgba(255,255,255,0.4)" : "transparent",
+        backdropFilter: visible ? NAVBAR_ANIMATIONS.backdrop.blur : "none",
+        backgroundColor: visible ? "rgba(255,255,255,0.8)" : "transparent",
         boxShadow: visible ? NAVBAR_ANIMATIONS.backdrop.shadow : "none",
       },
       transition: {
@@ -409,19 +378,36 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
     [visible],
   );
 
-  const { user, logout, isAuthenticated, userRole } = useAuth();
-  const { theme, setTheme } = useTheme(); // CRITICAL: Access theme and setTheme
+  // Use Clerk's useUser hook to get user data
+  const { user: clerkUser, isLoaded: clerkUserLoaded } = useClerkUser();
+  // Use your custom useUser hook for the logout action
+  const { signOut: customSignOut } = useUser();
+
+  // Map Clerk user data to your profile structure for Navbar display
+  const isAuthenticated = clerkUserLoaded && !!clerkUser;
+  const user = isAuthenticated
+    ? {
+        email: clerkUser.emailAddresses[0]?.emailAddress,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        imageUrl: clerkUser.imageUrl,
+        schoolId: (clerkUser.publicMetadata?.schoolId as string) || null,
+        // Clerk roles might be different, map them as needed or get from publicMetadata
+        role:
+          (clerkUser.publicMetadata?.role as
+            | "ADMIN"
+            | "ADVISOR"
+            | "STUDENT"
+            | "GUEST") || "GUEST",
+      }
+    : null;
 
   const isAdminOrAdvisor =
-    isAuthenticated && (userRole === "ADMIN" || userRole === "ADVISOR");
+    isAuthenticated && (user?.role === "ADMIN" || user?.role === "ADVISOR");
   const dashboardHref =
-    userRole === "ADMIN" ? "/dashboard/admin" : "/dashboard/advisor";
+    user?.role === "ADMIN" ? "/dashboard/admin" : "/dashboard/advisor";
   const dashboardButtonText =
-    userRole === "ADMIN" ? "Admin Dashboard" : "Advisor Dashboard";
-
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === "light" ? "dark" : "light");
-  }, [theme, setTheme]);
+    user?.role === "ADMIN" ? "Admin Dashboard" : "Advisor Dashboard";
 
   return (
     <motion.header
@@ -430,36 +416,12 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
       className={cn("fixed top-0 z-50 w-full", className)}
     >
       <NavBody className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Left Section: Logo */}
-        <div className="flex-shrink-0">
+        <div className="flex items-center space-x-6">
           <NavbarLogo />
-        </div>
-
-        {/* Center Section: Desktop Navigation Links */}
-        <div className="flex flex-1 justify-center">
-          {" "}
-          {/* CRITICAL FIX: Centralize NavItems */}
           <NavItems items={defaultNavigation} />
         </div>
 
-        {/* Right Section: Auth/User Buttons, Dark Mode Toggle & Mobile Toggle */}
-        <div className="flex flex-shrink-0 items-center space-x-2 sm:space-x-4">
-          {/* Dark Mode Toggle Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-            ) : (
-              <Moon className="h-5 w-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-
+        <div className="flex items-center space-x-2 sm:space-x-4">
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -513,7 +475,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={customSignOut} // Use your custom signOut from useUser
                   className="flex cursor-pointer items-center text-red-500"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -536,14 +498,13 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
           <MobileNavToggle
             items={defaultNavigation}
             isOpen={isMobileMenuOpen}
             onOpenChange={setIsMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
             isAuthenticated={isAuthenticated}
-            onLogout={logout}
+            onLogout={customSignOut} // Use your custom signOut
             isAdminOrAdvisor={isAdminOrAdvisor}
             dashboardHref={dashboardHref}
             dashboardButtonText={dashboardButtonText}
@@ -554,7 +515,6 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
   );
 };
 
-// Navigation Body (Inner container for Navbar content)
 const NavBody: React.FC<NavBodyProps> = ({ children, className }) => {
   return (
     <nav className={cn("flex h-16 items-center justify-between", className)}>

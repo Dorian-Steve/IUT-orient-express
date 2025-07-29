@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Search, MoreVertical, Phone, Video } from "lucide-react"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Send, Search, MoreVertical, Phone, Video } from "lucide-react";
 
 // Mock data for chat conversations
 const conversations = [
@@ -41,7 +47,7 @@ const conversations = [
     unreadCount: 1,
     isOnline: true,
   },
-]
+];
 
 const messages = [
   {
@@ -56,7 +62,8 @@ const messages = [
     id: "2",
     senderId: "advisor",
     senderName: "Dr. Jean Mbarga",
-    content: "Hello Marie! I'm doing well, thank you. How can I help you today?",
+    content:
+      "Hello Marie! I'm doing well, thank you. How can I help you today?",
     timestamp: "2024-01-15T10:05:00Z",
     isFromAdvisor: true,
   },
@@ -64,7 +71,8 @@ const messages = [
     id: "3",
     senderId: "2",
     senderName: "Marie Kouam",
-    content: "I wanted to discuss my performance in the Data Structures course. I'm finding some concepts challenging.",
+    content:
+      "I wanted to discuss my performance in the Data Structures course. I'm finding some concepts challenging.",
     timestamp: "2024-01-15T10:10:00Z",
     isFromAdvisor: false,
   },
@@ -81,50 +89,56 @@ const messages = [
     id: "5",
     senderId: "2",
     senderName: "Marie Kouam",
-    content: "Mainly binary trees and graph algorithms. Could we schedule a follow-up meeting?",
+    content:
+      "Mainly binary trees and graph algorithms. Could we schedule a follow-up meeting?",
     timestamp: "2024-01-15T12:15:00Z",
     isFromAdvisor: false,
   },
-]
+];
 
 export function AdvisorChatInterface() {
-  const [selectedConversation, setSelectedConversation] = useState(conversations[1])
-  const [newMessage, setNewMessage] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedConversation, setSelectedConversation] = useState(
+    conversations[1],
+  );
+  const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredConversations = conversations.filter((conv) =>
     conv.studentName.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return
+    if (!newMessage.trim()) return;
 
     // In a real app, this would send the message via API
-    console.log("Sending message:", newMessage)
-    setNewMessage("")
-  }
+    console.log("Sending message:", newMessage);
+    setNewMessage("");
+  };
 
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } else {
-      return date.toLocaleDateString()
+      return date.toLocaleDateString();
     }
-  }
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+    <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Conversations List */}
       <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle>Messages</CardTitle>
           <CardDescription>Chat with your assigned students</CardDescription>
           <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
@@ -139,9 +153,9 @@ export function AdvisorChatInterface() {
               {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedConversation.id === conversation.id
-                      ? "bg-blue-50 border border-blue-200"
+                  className={`cursor-pointer rounded-lg p-3 transition-colors ${
+                    selectedConversation?.id === conversation.id
+                      ? "border border-blue-200 bg-blue-50"
                       : "hover:bg-gray-50"
                   }`}
                   onClick={() => setSelectedConversation(conversation)}
@@ -153,27 +167,36 @@ export function AdvisorChatInterface() {
                           src={conversation.studentAvatar || "/placeholder.svg"}
                           alt={conversation.studentName}
                         />
-                        <AvatarFallback>{conversation.studentName.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>
+                          {conversation.studentName.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       {conversation.isOnline && (
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                        <div className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm truncate">{conversation.studentName}</p>
+                        <p className="truncate text-sm font-medium">
+                          {conversation.studentName}
+                        </p>
                         <div className="flex items-center gap-1">
                           {conversation.unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                            <Badge
+                              variant="destructive"
+                              className="px-1.5 py-0.5 text-xs"
+                            >
                               {conversation.unreadCount}
                             </Badge>
                           )}
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {formatTime(conversation.lastMessageTime)}
                           </span>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate mt-1">{conversation.lastMessage}</p>
+                      <p className="text-muted-foreground mt-1 truncate text-xs">
+                        {conversation.lastMessage}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -187,35 +210,45 @@ export function AdvisorChatInterface() {
       <Card className="lg:col-span-2">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={selectedConversation.studentAvatar || "/placeholder.svg"}
-                    alt={selectedConversation.studentName}
-                  />
-                  <AvatarFallback>{selectedConversation.studentName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                {selectedConversation.isOnline && (
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                )}
+            {selectedConversation && (
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={
+                        selectedConversation.studentAvatar || "/placeholder.svg"
+                      }
+                      alt={selectedConversation.studentName}
+                    />
+                    <AvatarFallback>
+                      {selectedConversation.studentName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {selectedConversation.isOnline && (
+                    <div className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-semibold">
+                    {selectedConversation.studentName}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {selectedConversation.isOnline
+                      ? "Online"
+                      : "Last seen recently"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">{selectedConversation.studentName}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedConversation.isOnline ? "Online" : "Last seen recently"}
-                </p>
-              </div>
-            </div>
+            )}
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
-                <Phone className="w-4 h-4" />
+                <Phone className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm">
-                <Video className="w-4 h-4" />
+                <Video className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm">
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -225,14 +258,21 @@ export function AdvisorChatInterface() {
           <ScrollArea className="h-[400px] p-4">
             <div className="space-y-4">
               {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.isFromAdvisor ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={message.id}
+                  className={`flex ${message.isFromAdvisor ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    className={`max-w-[70%] p-3 rounded-lg ${
-                      message.isFromAdvisor ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"
+                    className={`max-w-[70%] rounded-lg p-3 ${
+                      message.isFromAdvisor
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-900"
                     }`}
                   >
                     <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${message.isFromAdvisor ? "text-blue-100" : "text-gray-500"}`}>
+                    <p
+                      className={`mt-1 text-xs ${message.isFromAdvisor ? "text-blue-100" : "text-gray-500"}`}
+                    >
                       {formatTime(message.timestamp)}
                     </p>
                   </div>
@@ -252,12 +292,12 @@ export function AdvisorChatInterface() {
                 className="flex-1"
               />
               <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-                <Send className="w-4 h-4" />
+                <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
 import {
   Card,
@@ -10,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,596 +20,821 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth } from "@/components/providers/auth-provider";
-import { User, GraduationCap, Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Calendar,
+  MapPin,
+  Mail,
+  BookOpen,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Users,
+  Award,
+  Target,
+} from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+// Mock student data
+const mockStudentData = {
+  personalInfo: {
+    firstName: "Jean-Paul",
+    lastName: "Mballa",
+    email: "jean-paul.mballa@iut-douala.cm",
+    phone: "+237 6 78 90 12 34",
+    dateOfBirth: "2003-05-15",
+    address: "Quartier Bonanjo, Douala",
+    nationality: "Cameroonian",
+    avatar: "/placeholder.svg?height=100&width=100",
+  },
+  academicInfo: {
+    studentId: "IUT2024001",
+    program: "Computer Science",
+    level: "Level 2",
+    semester: "Semester 3",
+    gpa: 3.7,
+    creditsCompleted: 45,
+    totalCredits: 180,
+    enrollmentDate: "2024-09-01",
+    expectedGraduation: "2027-06-30",
+  },
+  orientationResults: {
+    overallScore: 85,
+    completionDate: "2024-10-15",
+    status: "Completed",
+    strengths: [
+      "Logical Thinking",
+      "Problem Solving",
+      "Mathematics",
+      "Technology Aptitude",
+    ],
+    improvements: ["Public Speaking", "Team Collaboration", "Time Management"],
+    recommendations: [
+      "Join the Computer Science Club to enhance collaboration skills",
+      "Participate in coding competitions to strengthen problem-solving",
+      "Consider taking a public speaking course",
+      "Engage in group projects to improve teamwork",
+    ],
+  },
+  savedEvents: [
+    {
+      id: "1",
+      title: "Tech Career Fair 2024",
+      date: "2024-12-15",
+      time: "09:00",
+      location: "IUT Douala Main Hall",
+      type: "Career",
+      status: "Registered",
+      description: "Meet with top tech companies in Cameroon",
+    },
+    {
+      id: "2",
+      title: "Python Programming Workshop",
+      date: "2024-12-08",
+      time: "14:00",
+      location: "Computer Lab A",
+      type: "Workshop",
+      status: "Upcoming",
+      description: "Advanced Python programming techniques",
+    },
+    {
+      id: "3",
+      title: "Alumni Networking Event",
+      date: "2024-12-20",
+      time: "18:00",
+      location: "Hotel Akwa Palace",
+      type: "Networking",
+      status: "Interested",
+      description: "Connect with IUT Douala alumni in tech industry",
+    },
+    {
+      id: "4",
+      title: "Cybersecurity Seminar",
+      date: "2024-11-30",
+      time: "10:00",
+      location: "Amphitheater B",
+      type: "Seminar",
+      status: "Completed",
+      description: "Introduction to cybersecurity best practices",
+    },
+  ],
+  advisorAppointments: [
+    {
+      id: "1",
+      advisor: {
+        name: "Dr. Jean Mbarga",
+        title: "Academic Advisor",
+        department: "Computer Science",
+        email: "j.mbarga@iut-douala.cm",
+        phone: "+237 6 55 44 33 22",
+        avatar: "/placeholder.svg?height=40&width=40",
+      },
+      date: "2024-12-05",
+      time: "10:00",
+      duration: "30 minutes",
+      location: "Office 205, Building A",
+      status: "Confirmed",
+      agenda: "Discuss course selection for next semester",
+      notes: "Bring transcript and course catalog",
+    },
+    {
+      id: "2",
+      advisor: {
+        name: "Prof. Alice Nkomo",
+        title: "Career Counselor",
+        department: "Student Services",
+        email: "a.nkomo@iut-douala.cm",
+        phone: "+237 6 77 88 99 00",
+        avatar: "/placeholder.svg?height=40&width=40",
+      },
+      date: "2024-12-10",
+      time: "14:30",
+      duration: "45 minutes",
+      location: "Career Services Office",
+      status: "Pending",
+      agenda: "Career planning and internship opportunities",
+      notes: "Prepare resume and career goals",
+    },
+    {
+      id: "3",
+      advisor: {
+        name: "Dr. Paul Essomba",
+        title: "Research Supervisor",
+        department: "Computer Science",
+        email: "p.essomba@iut-douala.cm",
+        phone: "+237 6 99 11 22 33",
+        avatar: "/placeholder.svg?height=40&width=40",
+      },
+      date: "2024-11-28",
+      time: "16:00",
+      duration: "60 minutes",
+      location: "Research Lab",
+      status: "Completed",
+      agenda: "Discuss final year project proposal",
+      notes: "Project approved - focus on AI applications",
+    },
+  ],
+};
 
 export function ProfileContent() {
-  const { user, updateProfile } = useAuth();
-  const [formData, setFormData] = useState({
-    firstName: user?.name?.split(" ")[0] || "",
-    lastName: user?.name?.split(" ")[1] || "",
-    email: user?.email || "",
-    schoolId: user?.schoolId || "",
-    speciality: user?.speciality || "",
-    academicBackground: user?.academicBackground || "",
-    phone: "",
-    dateOfBirth: "",
-    address: "",
-    city: "Douala",
-    country: "Cameroon",
-    highSchool: "",
-    graduationYear: "",
-    subjects: [] as string[],
-    interests: [] as string[],
-    careerGoals: "",
-    preferredLearningStyle: "",
-    technicalSkills: [] as string[],
-    languages: [] as string[],
-  });
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const subjectOptions = [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Computer Science",
-    "English",
-    "French",
-    "Economics",
-    "Philosophy",
-    "History",
-  ];
-
-  const interestOptions = [
-    "Programming",
-    "Web Development",
-    "Mobile Apps",
-    "Data Science",
-    "AI/ML",
-    "Cybersecurity",
-    "Networking",
-    "Game Development",
-    "Robotics",
-    "IoT",
-  ];
-
-  const technicalSkillOptions = [
-    "Python",
-    "JavaScript",
-    "Java",
-    "C++",
-    "HTML/CSS",
-    "React",
-    "Node.js",
-    "SQL",
-    "Git",
-    "Linux",
-    "Photoshop",
-    "Microsoft Office",
-  ];
-
-  const languageOptions = [
-    "French",
-    "English",
-    "German",
-    "Spanish",
-    "Arabic",
-    "Chinese",
-  ];
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+      case "confirmed":
+      case "registered":
+        return "bg-green-100 text-green-800";
+      case "upcoming":
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "interested":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
-  const handleArrayChange = (
-    field: string,
-    value: string,
-    checked: boolean,
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: checked
-        ? [...(prev[field as keyof typeof prev] as string[]), value]
-        : (prev[field as keyof typeof prev] as string[]).filter(
-            (item) => item !== value,
-          ),
-    }));
+  const getEventTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "career":
+        return "bg-purple-100 text-purple-800";
+      case "workshop":
+        return "bg-blue-100 text-blue-800";
+      case "networking":
+        return "bg-green-100 text-green-800";
+      case "seminar":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Update user profile
-    updateProfile({
-      name: `${formData.firstName} ${formData.lastName}`,
-      schoolId: formData.schoolId,
-      speciality: formData.speciality,
-      academicBackground: formData.academicBackground,
-      profileComplete: isProfileComplete,
-    });
-
-    // Show success message
-    alert("Profile updated successfully!");
-  };
-
-  const isProfileComplete =
-    formData.firstName &&
-    formData.lastName &&
-    formData.email &&
-    formData.schoolId &&
-    formData.speciality &&
-    formData.academicBackground &&
-    formData.phone &&
-    formData.careerGoals;
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8 text-center">
-          <h1 className="mb-4 text-3xl font-bold text-gray-900">
-            User Profile
-          </h1>
-          <p className="text-lg text-gray-600">
-            Complete your profile to get personalized recommendations and access
-            the orientation system.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Personal Information
-              </CardTitle>
-              <CardDescription>
-                Basic information about yourself
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      handleInputChange("firstName", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      handleInputChange("lastName", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="schoolId">School ID *</Label>
-                  <Input
-                    id="schoolId"
-                    value={formData.schoolId}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "schoolId",
-                        e.target.value.toUpperCase(),
-                      )
-                    }
-                    placeholder="IUT2024001"
-                    required
-                  />
-                  <p className="text-sm text-gray-500">
-                    Format: IUT followed by 7 digits
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="speciality">Speciality *</Label>
-                  <Select
-                    value={formData.speciality}
-                    onValueChange={(value) =>
-                      handleInputChange("speciality", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your speciality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Computer Science">
-                        Computer Science
-                      </SelectItem>
-                      <SelectItem value="Electrical Engineering">
-                        Electrical Engineering
-                      </SelectItem>
-                      <SelectItem value="Mechanical Engineering">
-                        Mechanical Engineering
-                      </SelectItem>
-                      <SelectItem value="Civil Engineering">
-                        Civil Engineering
-                      </SelectItem>
-                      <SelectItem value="Data Science">Data Science</SelectItem>
-                      <SelectItem value="Network Engineering">
-                        Network Engineering
-                      </SelectItem>
-                      <SelectItem value="Cybersecurity">
-                        Cybersecurity
-                      </SelectItem>
-                      <SelectItem value="Software Engineering">
-                        Software Engineering
-                      </SelectItem>
-                      <SelectItem value="Information Systems">
-                        Information Systems
-                      </SelectItem>
-                      <SelectItem value="Telecommunications">
-                        Telecommunications
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="academicBackground">
-                    Academic Background *
-                  </Label>
-                  <Select
-                    value={formData.academicBackground}
-                    onValueChange={(value) =>
-                      handleInputChange("academicBackground", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your academic background" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Baccalaureate A">
-                        Baccalaureate A
-                      </SelectItem>
-                      <SelectItem value="Baccalaureate C">
-                        Baccalaureate C
-                      </SelectItem>
-                      <SelectItem value="Baccalaureate D">
-                        Baccalaureate D
-                      </SelectItem>
-                      <SelectItem value="Baccalaureate S">
-                        Baccalaureate S
-                      </SelectItem>
-                      <SelectItem value="High School Diploma">
-                        High School Diploma
-                      </SelectItem>
-                      <SelectItem value="Bachelor's Degree in Science">
-                        Bachelor's Degree in Science
-                      </SelectItem>
-                      <SelectItem value="Bachelor's Degree in Engineering">
-                        Bachelor's Degree in Engineering
-                      </SelectItem>
-                      <SelectItem value="Technical Certificate">
-                        Technical Certificate
-                      </SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) =>
-                      handleInputChange("dateOfBirth", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Academic Background */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Academic Background
-              </CardTitle>
-              <CardDescription>
-                Your educational history and achievements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="highSchool">High School *</Label>
-                  <Input
-                    id="highSchool"
-                    value={formData.highSchool}
-                    onChange={(e) =>
-                      handleInputChange("highSchool", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="graduationYear">Graduation Year</Label>
-                  <Select
-                    value={formData.graduationYear}
-                    onValueChange={(value) =>
-                      handleInputChange("graduationYear", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from(
-                        { length: 10 },
-                        (_, i) => new Date().getFullYear() - i,
-                      ).map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Subjects Studied</Label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {subjectOptions.map((subject) => (
-                    <div key={subject} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`subject-${subject}`}
-                        checked={formData.subjects.includes(subject)}
-                        onCheckedChange={(checked) =>
-                          handleArrayChange(
-                            "subjects",
-                            subject,
-                            checked as boolean,
-                          )
-                        }
-                      />
-                      <Label htmlFor={`subject-${subject}`} className="text-sm">
-                        {subject}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Interests & Goals */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Interests & Career Goals
-              </CardTitle>
-              <CardDescription>
-                Help us understand your interests and aspirations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Areas of Interest</Label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {interestOptions.map((interest) => (
-                    <div key={interest} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`interest-${interest}`}
-                        checked={formData.interests.includes(interest)}
-                        onCheckedChange={(checked) =>
-                          handleArrayChange(
-                            "interests",
-                            interest,
-                            checked as boolean,
-                          )
-                        }
-                      />
-                      <Label
-                        htmlFor={`interest-${interest}`}
-                        className="text-sm"
-                      >
-                        {interest}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="careerGoals">Career Goals *</Label>
-                <Textarea
-                  id="careerGoals"
-                  value={formData.careerGoals}
-                  onChange={(e) =>
-                    handleInputChange("careerGoals", e.target.value)
-                  }
-                  placeholder="Describe your career aspirations and what you hope to achieve..."
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="preferredLearningStyle">
-                  Preferred Learning Style
-                </Label>
-                <Select
-                  value={formData.preferredLearningStyle}
-                  onValueChange={(value) =>
-                    handleInputChange("preferredLearningStyle", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your learning style" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="visual">
-                      Visual (diagrams, charts, images)
-                    </SelectItem>
-                    <SelectItem value="auditory">
-                      Auditory (lectures, discussions)
-                    </SelectItem>
-                    <SelectItem value="kinesthetic">
-                      Kinesthetic (hands-on, practical)
-                    </SelectItem>
-                    <SelectItem value="reading">
-                      Reading/Writing (text-based)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Skills & Languages */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Skills & Languages</CardTitle>
-              <CardDescription>
-                Your current technical skills and language proficiency
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Technical Skills</Label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {technicalSkillOptions.map((skill) => (
-                    <div key={skill} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`skill-${skill}`}
-                        checked={formData.technicalSkills.includes(skill)}
-                        onCheckedChange={(checked) =>
-                          handleArrayChange(
-                            "technicalSkills",
-                            skill,
-                            checked as boolean,
-                          )
-                        }
-                      />
-                      <Label htmlFor={`skill-${skill}`} className="text-sm">
-                        {skill}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Languages</Label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {languageOptions.map((language) => (
-                    <div key={language} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`language-${language}`}
-                        checked={formData.languages.includes(language)}
-                        onCheckedChange={(checked) =>
-                          handleArrayChange(
-                            "languages",
-                            language,
-                            checked as boolean,
-                          )
-                        }
-                      />
-                      <Label
-                        htmlFor={`language-${language}`}
-                        className="text-sm"
-                      >
-                        {language}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Profile Status */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">Profile Completion Status</h3>
-                  <p className="text-sm text-gray-600">
-                    {isProfileComplete
-                      ? "Your profile is complete! You can now access the orientation system."
-                      : "Please complete all required fields to access the orientation system."}
-                  </p>
-                </div>
-                <div
-                  className={`rounded-full px-3 py-1 text-sm font-medium ${
-                    isProfileComplete
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {isProfileComplete ? "Complete" : "Incomplete"}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submit Button */}
-          <div className="flex justify-center">
-            <Button type="submit" size="lg" className="px-8">
-              Save Profile
-            </Button>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <div className="mb-4 flex items-center gap-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage
+              src={mockStudentData.personalInfo.avatar || "/placeholder.svg"}
+              alt={mockStudentData.personalInfo.firstName}
+            />
+            <AvatarFallback className="text-2xl">
+              {mockStudentData.personalInfo.firstName.charAt(0)}
+              {mockStudentData.personalInfo.lastName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {mockStudentData.personalInfo.firstName}{" "}
+              {mockStudentData.personalInfo.lastName}
+            </h1>
+            <p className="text-gray-600">
+              {mockStudentData.academicInfo.program} •{" "}
+              {mockStudentData.academicInfo.level}
+            </p>
+            <p className="text-sm text-gray-500">
+              Student ID: {mockStudentData.academicInfo.studentId}
+            </p>
           </div>
-        </form>
+        </div>
       </div>
+
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="program">Program</TabsTrigger>
+          <TabsTrigger value="orientation">Orientation</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">GPA</CardTitle>
+                <TrendingUp className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {mockStudentData.academicInfo.gpa}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  Current semester
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Credits</CardTitle>
+                <BookOpen className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {mockStudentData.academicInfo.creditsCompleted}/
+                  {mockStudentData.academicInfo.totalCredits}
+                </div>
+                <Progress
+                  value={
+                    (mockStudentData.academicInfo.creditsCompleted /
+                      mockStudentData.academicInfo.totalCredits) *
+                    100
+                  }
+                  className="mt-2"
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Orientation
+                </CardTitle>
+                <Award className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {mockStudentData.orientationResults.overallScore}%
+                </div>
+                <p className="text-muted-foreground text-xs">Completed</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Events</CardTitle>
+                <Calendar className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {mockStudentData.savedEvents.length}
+                </div>
+                <p className="text-muted-foreground text-xs">Saved events</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Events</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockStudentData.savedEvents
+                    .filter((event) => event.status !== "Completed")
+                    .slice(0, 3)
+                    .map((event) => (
+                      <div
+                        key={event.id}
+                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                      >
+                        <div>
+                          <p className="font-medium">{event.title}</p>
+                          <p className="text-sm text-gray-600">
+                            {event.date} at {event.time}
+                          </p>
+                        </div>
+                        <Badge className={getStatusColor(event.status)}>
+                          {event.status}
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        Completed Cybersecurity Seminar
+                      </p>
+                      <p className="text-xs text-gray-500">2 days ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        Registered for Tech Career Fair
+                      </p>
+                      <p className="text-xs text-gray-500">1 week ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        Met with Academic Advisor
+                      </p>
+                      <p className="text-xs text-gray-500">2 weeks ago</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="program" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Program Information</CardTitle>
+              <CardDescription>
+                Your selected academic program details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">
+                    Program Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Program:</span>
+                      <span className="font-medium">
+                        {mockStudentData.academicInfo.program}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Current Level:</span>
+                      <span className="font-medium">
+                        {mockStudentData.academicInfo.level}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Current Semester:</span>
+                      <span className="font-medium">
+                        {mockStudentData.academicInfo.semester}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Enrollment Date:</span>
+                      <span className="font-medium">
+                        {mockStudentData.academicInfo.enrollmentDate}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        Expected Graduation:
+                      </span>
+                      <span className="font-medium">
+                        {mockStudentData.academicInfo.expectedGraduation}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">
+                    Academic Progress
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="mb-2 flex justify-between">
+                        <span className="text-sm font-medium">
+                          Credits Completed
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {mockStudentData.academicInfo.creditsCompleted}/
+                          {mockStudentData.academicInfo.totalCredits}
+                        </span>
+                      </div>
+                      <Progress
+                        value={
+                          (mockStudentData.academicInfo.creditsCompleted /
+                            mockStudentData.academicInfo.totalCredits) *
+                          100
+                        }
+                      />
+                    </div>
+                    <div>
+                      <div className="mb-2 flex justify-between">
+                        <span className="text-sm font-medium">Current GPA</span>
+                        <span className="text-sm font-bold text-green-600">
+                          {mockStudentData.academicInfo.gpa}/4.0
+                        </span>
+                      </div>
+                      <Progress
+                        value={(mockStudentData.academicInfo.gpa / 4.0) * 100}
+                      />
+                    </div>
+                    <div className="rounded-lg bg-blue-50 p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Status:</strong> On track for graduation in{" "}
+                        {mockStudentData.academicInfo.expectedGraduation}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="orientation" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Orientation Results</CardTitle>
+              <CardDescription>
+                Your comprehensive orientation assessment results
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <div className="mb-4 inline-flex h-32 w-32 items-center justify-center rounded-full bg-green-100">
+                  <span className="text-3xl font-bold text-green-600">
+                    {mockStudentData.orientationResults.overallScore}%
+                  </span>
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Overall Score</h3>
+                <Badge className="bg-green-100 text-green-800">
+                  {mockStudentData.orientationResults.status}
+                </Badge>
+                <p className="mt-2 text-sm text-gray-600">
+                  Completed on{" "}
+                  {mockStudentData.orientationResults.completionDate}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg text-green-600">
+                      Strengths
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {mockStudentData.orientationResults.strengths.map(
+                        (strength, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">{strength}</span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg text-orange-600">
+                      Areas for Improvement
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {mockStudentData.orientationResults.improvements.map(
+                        (improvement, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-orange-600" />
+                            <span className="text-sm">{improvement}</span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personalized Recommendations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {mockStudentData.orientationResults.recommendations.map(
+                      (recommendation, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-3 rounded-lg bg-blue-50 p-3"
+                        >
+                          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+                          <p className="text-sm text-blue-800">
+                            {recommendation}
+                          </p>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="events" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Saved Events</CardTitle>
+                <CardDescription>
+                  Events you've registered for or shown interest in
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockStudentData.savedEvents.map((event) => (
+                    <div key={event.id} className="rounded-lg border p-4">
+                      <div className="mb-2 flex items-start justify-between">
+                        <h4 className="font-semibold">{event.title}</h4>
+                        <div className="flex gap-2">
+                          <Badge className={getEventTypeColor(event.type)}>
+                            {event.type}
+                          </Badge>
+                          <Badge className={getStatusColor(event.status)}>
+                            {event.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="mb-2 text-sm text-gray-600">
+                        {event.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {event.date}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {event.time}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {event.location}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Advisor Appointments</CardTitle>
+                <CardDescription>
+                  Your scheduled meetings with advisors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockStudentData.advisorAppointments.map((appointment) => (
+                    <div key={appointment.id} className="rounded-lg border p-4">
+                      <div className="mb-3 flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={
+                              appointment.advisor.avatar || "/placeholder.svg"
+                            }
+                            alt={appointment.advisor.name}
+                          />
+                          <AvatarFallback>
+                            {appointment.advisor.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">
+                              {appointment.advisor.name}
+                            </h4>
+                            <Badge
+                              className={getStatusColor(appointment.status)}
+                            >
+                              {appointment.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {appointment.advisor.title}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {appointment.advisor.department}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {appointment.date} at {appointment.time}
+                          </span>
+                          <span className="text-gray-500">
+                            ({appointment.duration})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span>{appointment.location}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-400" />
+                          <span>{appointment.advisor.email}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 rounded bg-gray-50 p-3">
+                        <p className="mb-1 text-sm font-medium">Agenda:</p>
+                        <p className="text-sm text-gray-600">
+                          {appointment.agenda}
+                        </p>
+                        {appointment.notes && (
+                          <>
+                            <p className="mt-2 mb-1 text-sm font-medium">
+                              Notes:
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {appointment.notes}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="edit" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Profile</CardTitle>
+              <CardDescription>
+                Update your personal and academic information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        defaultValue={mockStudentData.personalInfo.firstName}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        defaultValue={mockStudentData.personalInfo.lastName}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      defaultValue={mockStudentData.personalInfo.email}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      defaultValue={mockStudentData.personalInfo.phone}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea
+                      id="address"
+                      defaultValue={mockStudentData.personalInfo.address}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">
+                    Academic Information
+                  </h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="program">Program</Label>
+                    <Select defaultValue={mockStudentData.academicInfo.program}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Computer Science">
+                          Computer Science
+                        </SelectItem>
+                        <SelectItem value="Data Science">
+                          Data Science
+                        </SelectItem>
+                        <SelectItem value="Network Engineering">
+                          Network Engineering
+                        </SelectItem>
+                        <SelectItem value="Cybersecurity">
+                          Cybersecurity
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="level">Current Level</Label>
+                    <Select defaultValue={mockStudentData.academicInfo.level}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Level 1">Level 1</SelectItem>
+                        <SelectItem value="Level 2">Level 2</SelectItem>
+                        <SelectItem value="Level 3">Level 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="interests">Interests</Label>
+                    <Textarea
+                      id="interests"
+                      placeholder="Your academic and career interests..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="skills">Skills</Label>
+                    <Textarea
+                      id="skills"
+                      placeholder="Your technical and soft skills..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <Button variant="outline">Cancel</Button>
+                <Button>Save Changes</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

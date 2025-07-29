@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Card,

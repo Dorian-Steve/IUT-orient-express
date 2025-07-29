@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useAuth } from "@clerk/nextjs";
 import {
   CheckCircle,
   ArrowRight,

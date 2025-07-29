@@ -1,5 +1,5 @@
 // staff.ts
-import { StaffMember } from "@/types/types";
+import type { StaffMember } from "@/types/types";
 
 export const staff: StaffMember[] = [
   {

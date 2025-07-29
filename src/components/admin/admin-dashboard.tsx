@@ -9,14 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdvisorAssignmentDashboard } from "./advisor-assignment-dashboard";
-import { SystemOverviewDashboard } from "./system-overview-dashboard";
-import { UserManagementDashboard } from "./user-management-dashboard";
-import { ProgramManagementDashboard } from "./program-management-dashboard";
-import { AdvisorManagementDashboard } from "./advisor-management-dashboard";
-import { ActivityMonitoringDashboard } from "./activity-monitoring-dashboard";
-import { SystemSettingsDashboard } from "./system-settings-dashboard";
-import { useAuth } from "@/components/providers/auth-provider";
+// Import Clerk's useUser hook
+import { useUser } from "@clerk/nextjs";
 import {
   Shield,
   Users,
@@ -26,14 +20,39 @@ import {
   UserCheck,
   Activity,
   Cog,
+  Loader2, // Import Loader2 for loading state
 } from "lucide-react";
 
+// Assuming these components exist and their paths are correct
+import { AdvisorAssignmentDashboard } from "./advisor-assignment-dashboard";
+import { SystemOverviewDashboard } from "./system-overview-dashboard";
+import { UserManagementDashboard } from "./user-management-dashboard";
+import { ProgramManagementDashboard } from "./program-management-dashboard";
+import { AdvisorManagementDashboard } from "./advisor-management-dashboard";
+import { ActivityMonitoringDashboard } from "./activity-monitoring-dashboard";
+import { SystemSettingsDashboard } from "./system-settings-dashboard";
+
 export function AdminDashboard() {
-  const { user } = useAuth();
+  // Use Clerk's useUser hook to access the authenticated user object
+  const { user, isLoaded, isSignedIn } = useUser();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Check if user has admin role
-  if (user?.role !== "ADMIN") {
+  // Show a loading spinner while Clerk user data is being loaded
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+        <p className="ml-2 text-lg text-gray-700">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  // Check if user is signed in and has the ADMIN role from publicMetadata
+  // Clerk stores custom user attributes in publicMetadata (for client-side access)
+  // and privateMetadata (for server-side access).
+  const isAdmin = isSignedIn && user?.publicMetadata?.role === "ADMIN";
+
+  if (!isAdmin) {
     return (
       <div className="container mx-auto px-4 py-12">
         <Card className="mx-auto max-w-md">
@@ -41,7 +60,7 @@ export function AdminDashboard() {
             <Shield className="mx-auto mb-4 h-12 w-12 text-red-500" />
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>
-              You don't have administrator privileges to access this section.
+              You do not have administrator privileges to access this section.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -49,19 +68,24 @@ export function AdminDashboard() {
     );
   }
 
+  // If the user is an admin, render the dashboard
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
           Admin Dashboard
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Complete system administration and management
         </p>
-        <div className="mt-4 rounded-lg bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">
-            <strong>Welcome, {user.name}!</strong> You have full administrative
-            access to manage the IUT Douala platform.
+        <div className="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-950">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            {/* Access user's first name or full name from Clerk's user object */}
+            <strong>
+              Welcome, {user?.firstName || user?.fullName || "Admin"}!
+            </strong>{" "}
+            You have full administrative access to manage the IUT Douala
+            platform.
           </p>
         </div>
       </div>
@@ -71,7 +95,9 @@ export function AdminDashboard() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-8">
+          {" "}
+          {/* Adjusted grid-cols for responsiveness */}
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -135,40 +161,40 @@ export function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="reports">
-          <Card>
+          <Card className="dark:bg-gray-800 dark:text-gray-100">
             <CardHeader>
               <CardTitle>System Reports</CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Generate and view comprehensive system reports
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="p-4">
+                <Card className="p-4 dark:bg-gray-700">
                   <h3 className="mb-2 font-semibold">
                     Academic Performance Report
                   </h3>
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
                     Student grades, GPA trends, and program completion rates
                   </p>
                   <button className="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                     Generate Report
                   </button>
                 </Card>
-                <Card className="p-4">
+                <Card className="p-4 dark:bg-gray-700">
                   <h3 className="mb-2 font-semibold">Enrollment Statistics</h3>
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
                     Student enrollment trends and program popularity
                   </p>
                   <button className="w-full rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                     Generate Report
                   </button>
                 </Card>
-                <Card className="p-4">
+                <Card className="p-4 dark:bg-gray-700">
                   <h3 className="mb-2 font-semibold">
                     Advisor Workload Report
                   </h3>
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
                     Advisor assignments and meeting statistics
                   </p>
                   <button className="w-full rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">

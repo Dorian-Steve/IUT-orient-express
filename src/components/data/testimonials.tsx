@@ -1,5 +1,5 @@
 // ProgramCard.tsx
-import { Testimonial } from "@/types/types";
+import type { Testimonial } from "@/types/types";
 
 export const Testimonials: Testimonial[] = [
   {
