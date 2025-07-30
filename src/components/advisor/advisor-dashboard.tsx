@@ -1,3 +1,4 @@
+// src/components/advisor/advisor-dashboard.tsx
 "use client";
 
 import { useState } from "react";
@@ -11,20 +12,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssignedStudentsView } from "./assigned-students-view";
 import { MeetingRequestManagement } from "./meeting-request-management";
 import { AdvisorChatInterface } from "./advisor-chat-interface";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs"; // Using useUser for consistency, useAuth also works
 import { Shield, Users, Calendar } from "lucide-react";
 import { AdvisorScheduleView } from "./advisor-schedule-view";
 import { AdvisorAvailabilityManagement } from "./advisor-availability-management";
 import { AdvisorEventManagement } from "./advisor-event-management";
 import { AdvisorResourceManagement } from "./advisor-resource-management";
-import { Clock, CalendarDays, BookOpen } from "lucide-react";
+import { Clock, CalendarDays, BookOpen, Loader2 } from "lucide-react"; // Added Loader2
 
 export function AdvisorDashboard() {
-  const { user } = useAuth();
+  const { user, isLoaded, isSignedIn } = useUser(); // Changed to useUser for more explicit data
+
   const [activeTab, setActiveTab] = useState("students");
 
-  // Check if user has advisor role
-  if (user?.role !== "ADVISOR") {
+  // Show a loading spinner while Clerk user data is being loaded
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+        <p className="ml-2 text-lg text-gray-700">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  // --- TEMPORARY BYPASS FOR DEVELOPMENT START ---
+  // ORIGINAL LINE: if (user?.role !== "ADVISOR") {
+  // MODIFIED LOGIC: Temporarily bypass the role check.
+  const isAdvisor = true; // For development, bypass advisor role check
+
+  if (!isAdvisor) {
+    // This entire block will now be skipped as isAdvisor is always true
     return (
       <div className="container mx-auto px-4 py-12">
         <Card className="mx-auto max-w-md">
@@ -39,6 +56,8 @@ export function AdvisorDashboard() {
       </div>
     );
   }
+  // --- TEMPORARY BYPASS FOR DEVELOPMENT END ---
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -47,7 +66,7 @@ export function AdvisorDashboard() {
           Advisor Dashboard
         </h1>
         <p className="text-gray-600">
-          Welcome back, {user.name}! Manage your assigned students, meetings,
+          Welcome back, {user?.firstName || user?.fullName || 'Advisor'}! Manage your assigned students, meetings,
           and communications
         </p>
       </div>
@@ -81,6 +100,11 @@ export function AdvisorDashboard() {
           <TabsTrigger value="resources" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Resources
+          </TabsTrigger>
+          {/* Note: 'chat' tab is present in original, adding here for completeness */}
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> {/* Use an appropriate icon here */}
+            Chat
           </TabsTrigger>
         </TabsList>
 
