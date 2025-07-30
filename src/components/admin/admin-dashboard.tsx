@@ -1,3 +1,4 @@
+// src/components/admin/admin-dashboard.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Import Clerk's useUser hook
 import { useUser } from "@clerk/nextjs";
 import {
   Shield,
@@ -20,7 +20,7 @@ import {
   UserCheck,
   Activity,
   Cog,
-  Loader2, // Import Loader2 for loading state
+  Loader2,
 } from "lucide-react";
 
 // Assuming these components exist and their paths are correct
@@ -33,11 +33,9 @@ import { ActivityMonitoringDashboard } from "./activity-monitoring-dashboard";
 import { SystemSettingsDashboard } from "./system-settings-dashboard";
 
 export function AdminDashboard() {
-  // Use Clerk's useUser hook to access the authenticated user object
   const { user, isLoaded, isSignedIn } = useUser();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Show a loading spinner while Clerk user data is being loaded
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -47,12 +45,13 @@ export function AdminDashboard() {
     );
   }
 
-  // Check if user is signed in and has the ADMIN role from publicMetadata
-  // Clerk stores custom user attributes in publicMetadata (for client-side access)
-  // and privateMetadata (for server-side access).
-  const isAdmin = isSignedIn && user?.publicMetadata?.role === "ADMIN";
+  // --- TEMPORARY BYPASS FOR DEVELOPMENT START ---
+  // ORIGINAL LINE: const isAdmin = isSignedIn && user?.publicMetadata?.role === "ADMIN";
+  // MODIFIED LINE: Temporarily set isAdmin to true to bypass the check.
+  const isAdmin = true; // For development, bypass admin role check
 
   if (!isAdmin) {
+    // This entire block will now be skipped as isAdmin is always true
     return (
       <div className="container mx-auto px-4 py-12">
         <Card className="mx-auto max-w-md">
@@ -67,6 +66,8 @@ export function AdminDashboard() {
       </div>
     );
   }
+  // --- TEMPORARY BYPASS FOR DEVELOPMENT END ---
+
 
   // If the user is an admin, render the dashboard
   return (
